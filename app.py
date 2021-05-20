@@ -32,6 +32,7 @@ def main():
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
         return X_train, X_test, y_train, y_test
     
+
     def plot_metrics(metrics_list):
         if "Confusion Matrix" in metrics_list:
             st.subheader("Confusion Matrix")
@@ -50,7 +51,21 @@ def main():
             fig, ax = plt.subplots()
             plot_precision_recall_curve(model, X_test, y_test, ax=ax)
             st.pyplot(fig)
+    
 
+    def  calc_and_plot_metrics(model, X_train, X_test, y_train, y_test):
+        """ Calculates classification model metrics.
+        """
+        model.fit(X_train, y_train)
+        accuracy = model.score(X_test, y_test)
+        y_pred = model.predict(X_test)
+
+        st.write("Accuracy: ", accuracy.round(3))
+        st.write("Precision: ", precision_score(y_test, y_pred, labels=class_names).round(3))
+        st.write("Recall: ", recall_score(y_test, y_pred, labels=class_names).round(3))
+        plot_metrics(metrics)
+
+    # Body of "main" code.
     df = load_data()
     X_train, X_test, y_train, y_test = split(df)
     class_names = ["edible", "poisonous"]
@@ -69,19 +84,12 @@ def main():
         metrics = st.sidebar.multiselect("What metrics to plot?", ("Confusion Matrix",
                                                                     "ROC Curve",
                                                                     "Precision-Recall Curve"))
-    
         if st.sidebar.button("Run Model", key="run_model"):
             st.subheader("Support Vector Machine (SVM) Results")
-            model = SVC(C=C,
-                        kernel=kernel,
-                        gamma=gamma)
-            model.fit(X_train, y_train)
-            accuracy = model.score(X_test, y_test)
-            y_pred = model.predict(X_test)
-            st.write("Accuracy: ", accuracy.round(3))
-            st.write("Precision: ", precision_score(y_test, y_pred, labels=class_names).round(3))
-            st.write("Recall: ", recall_score(y_test, y_pred, labels=class_names).round(3))
-            plot_metrics(metrics)
+            svc = SVC(C=C,
+                    kernel=kernel,
+                    gamma=gamma)
+            calc_and_plot_metrics(svc, X_train, X_test, y_train, y_test)
     
     
     if classifier == "Logistic Regression":
@@ -92,17 +100,10 @@ def main():
         metrics = st.sidebar.multiselect("What metrics to plot?", ("Confusion Matrix",
                                                                     "ROC Curve",
                                                                     "Precision-Recall Curve"))
-    
         if st.sidebar.button("Run Model", key="run_model"):
             st.subheader("Logistic Regression Results")
-            model = LogisticRegression(C=C, max_iter=max_iter)
-            model.fit(X_train, y_train)
-            accuracy = model.score(X_test, y_test)
-            y_pred = model.predict(X_test)
-            st.write("Accuracy: ", accuracy.round(3))
-            st.write("Precision: ", precision_score(y_test, y_pred, labels=class_names).round(3))
-            st.write("Recall: ", recall_score(y_test, y_pred, labels=class_names).round(3))
-            plot_metrics(metrics)
+            log_reg = LogisticRegression(C=C, max_iter=max_iter)
+            calc_and_plot_metrics(log_reg, X_train, X_test, y_train, y_test)
     
     if classifier == "Random Forest":
         st.sidebar.subheader("Model Hyperparameters")
@@ -114,20 +115,13 @@ def main():
         metrics = st.sidebar.multiselect("What metrics to plot?", ("Confusion Matrix",
                                                                     "ROC Curve",
                                                                     "Precision-Recall Curve"))
-    
         if st.sidebar.button("Run Model", key="run_model"):
             st.subheader("Random Forest Results")
-            model = RandomForestClassifier(n_estimators=n_estimators,
-                                            max_depth=max_depth,
-                                            bootstrap=bootstrap,
-                                            n_jobs=-1)
-            model.fit(X_train, y_train)
-            accuracy = model.score(X_test, y_test)
-            y_pred = model.predict(X_test)
-            st.write("Accuracy: ", accuracy.round(3))
-            st.write("Precision: ", precision_score(y_test, y_pred, labels=class_names).round(3))
-            st.write("Recall: ", recall_score(y_test, y_pred, labels=class_names).round(3))
-            plot_metrics(metrics)
+            rf = RandomForestClassifier(n_estimators=n_estimators,
+                                        max_depth=max_depth,
+                                        bootstrap=bootstrap,
+                                        n_jobs=-1)
+            calc_and_plot_metrics(rf, X_train, X_test, y_train, y_test):
     
     
     
