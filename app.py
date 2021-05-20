@@ -8,6 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import plot_confusion_matrix, plot_roc_curve, plot_precision_recall_curve
 from sklearn.metrics import precision_score, recall_score
+import matplotlib.pyplot as plt
 
 def main():
     st.title("Binary Classification Web App")
@@ -15,7 +16,7 @@ def main():
     st.markdown("Are your mushrooms edible or poisonous? 🍄")
     st.sidebar.markdown("Are your mushrooms edible or poisonous? 🍄")
 
-    @st.cache(persist=True) # caches output to disk. prevents reruning the function.
+    @st.cache(max_entries=10) # caches output to disk. prevents reruning the function.
     def load_data():
         data = pd.read_csv("mushrooms.csv")
         label = LabelEncoder()
@@ -24,28 +25,31 @@ def main():
             data[col] = label.fit_transform(data[col])
         return data
     
-    @st.cache(persist=True)
+    @st.cache(max_entries=10)
     def split(df):
-        y = df.type
-        X = df.drop(columns=["type"])
+        y = df["type"]
+        X = df.drop(columns=["type"], axis=1)
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
         return X_train, X_test, y_train, y_test
     
     def plot_metrics(metrics_list):
         if "Confusion Matrix" in metrics_list:
             st.subheader("Confusion Matrix")
-            plot_confusion_matrix(model, X_test, y_test, display_labels=class_names)
-            st.pyplot()
+            fig, ax = plt.subplots()
+            plot_confusion_matrix(model, X_test, y_test, display_labels=class_names, ax=ax)
+            st.pyplot(fig)
         
         if "ROC Curve" in metrics_list:
             st.subheader("ROC Curve")
-            plot_roc_curve(model, X_test, y_test)
-            st.pyplot()
+            fig, ax =plt.subplots()
+            plot_roc_curve(model, X_test, y_test, ax=ax)
+            st.pyplot(fig)
         
         if "Precision-Recall Curve" in metrics_list:
             st.subheader("Precision-Recall Curve")
-            plot_precision_recall_curve(model, X_test, y_test)
-            st.pyplot()
+            fig, ax = plt.subplots()
+            plot_precision_recall_curve(model, X_test, y_test, ax=ax)
+            st.pyplot(fig)
 
     df = load_data()
     X_train, X_test, y_train, y_test = split(df)
